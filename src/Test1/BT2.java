@@ -1,9 +1,12 @@
-package Test;
+package Test1;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -34,9 +37,9 @@ public class BT2 {
 		try {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			
-		    String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=TOUR";
-		    String dbUser = "abcd";
-		    String dbPass = "123456";
+		    String dbURL = "jdbc:sqlserver://103.95.197.121:9696;databaseName=JavaTest7";
+		    String dbUser = "DACNPM";
+		    String dbPass = "khoa19@itf";
 		    
 		    con = DriverManager.getConnection(dbURL,dbUser,dbPass);
 		    System.out.println("Connected to database!");
@@ -49,7 +52,7 @@ public class BT2 {
 	private static void InsertData(String url, int key) {
 		FileInputStream fileInputStream = null;
         BufferedReader bufferedReader = null;
-
+        
         try {
             fileInputStream = new FileInputStream(url);
             bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
@@ -75,22 +78,37 @@ public class BT2 {
                     line = bufferedReader.readLine();
                 }
             } else if (key == 2) {
+            	String errurl = "C:\\Users\\nphuc\\Desktop\\error.txt";
+            	FileOutputStream fos = new FileOutputStream(errurl);
+            	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            	
             	String line = bufferedReader.readLine();
+            	
+            	int index = 1;
             	while (line != null) {
             		String[] sline = line.split(", ");
-            		int newCPN = 0;
-            		int diemthuong = 0;
-            		if (sline[2] == "VIP") diemthuong = Integer.parseInt(sline[1]) *50000;
-            		else if (sline[2] == "NOR") diemthuong = Integer.parseInt(sline[1])*20000;
-            		newCPN = Integer.parseInt(sline[1]) + diemthuong;
-                	String query = "UPDATE THANHVIEN SET ChiPhiNhan = ChiPhiNhan + " + newCPN + " WHERE MaThanhVien = '" + sline[0] + "'";
-                	
-                	System.out.println(query);
-                	
-                    excuteUpdate(query);
-                    
-                    line = bufferedReader.readLine();
+            		String error = checkLineError(sline, index);
+            		
+            		if (error == "") {
+            			int newCPN = 0;
+                		int diemthuong = 0;
+                		if (sline[2] == "VIP") diemthuong = Integer.parseInt(sline[1]) *50000;
+                		else if (sline[2] == "NOR") diemthuong = Integer.parseInt(sline[1])*20000;
+                		newCPN = Integer.parseInt(sline[1]) + diemthuong;
+                    	String query = "UPDATE THANHVIEN SET ChiPhiNhan = ChiPhiNhan + " + newCPN + " WHERE MaThanhVien = '" + sline[0] + "'";
+                    	                    	
+                        excuteUpdate(query);
+                        
+            		} else {
+            			bw.write(error);
+            		}
+            		
+            		line = bufferedReader.readLine();
+                    index++;
                 }
+            	
+            	bw.close();
+            	fos.close();
             }
             
         } catch (Exception ex) {
@@ -114,13 +132,31 @@ public class BT2 {
 		}
 	}
 	
-	private static ResultSet excuteQuery(String query) {
-        try {
-        	Statement stmt = con.createStatement();
-        	ResultSet set = stmt.executeQuery(query);
-        	return set;
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+	private static String checkLineError(String[] line, int index) {
+		String res = "";
+		String query = "select * from THANHVIEN Where MaThanhVien = '" + line[0] +"'";
+		Statement stmt;
+		ResultSet set;
+		try {
+			stmt = con.createStatement();
+			set = stmt.executeQuery(query);
+			if (!set.next()) res += "Dong " + index + ": Khong tim thay ma thanh vien tuong ung\n";
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(e1.getMessage());
 		}
+    	
+		int i;
+		try {
+			i = Integer.parseInt(line[1]);
+			if (i < 0) res += "Dong " + index + ": Diem thuong khong la so nguyen duong\n";
+			if (i > 500 ) res += "Dong " + index + ": Diem thuong lon hon 500\n";
+		} catch (Exception e) {
+			res += "Dong " + index + ": Diem thuong khong la so nguyen duong\n";
+		}
+		
+		if (!line[2].equals("VIP") && !line[2].equals("NOR")) res += "Dong " + index + ": Level khong phai VIP hoac NOR\n";		
+		
+		return res;
 	}
 }

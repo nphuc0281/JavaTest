@@ -1,4 +1,4 @@
-package Test;
+package Test1;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -67,7 +67,7 @@ public class BT1 extends JFrame {
 		contentPane.add(txtString);
 		txtString.setColumns(10);
 		
-		String[] Func = { "Đếm từ", "Đếm từ trùng lặp", "Đảo chuỗi"};
+		String[] Func = { "Ä�áº¿m tá»«", "Ä�áº¿m tá»« trÃ¹ng láº·p", "Ä�áº£o chuá»—i"};
 		JComboBox cbbFunc = new JComboBox(Func);
 		cbbFunc.setBounds(132, 92, 222, 22);
 		contentPane.add(cbbFunc);
