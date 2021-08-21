@@ -12,7 +12,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class BT2 {
 	private static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -89,7 +88,7 @@ public class BT2 {
     	bufferedWriter.close();
     	fileOutputStream.close();
     	
-    	System.out.println("Data exported to " + url);
+    	System.out.println("\nData exported to " + url);
 	}
 	
 	private static void insertData(String url, Boolean mode) throws ClassNotFoundException, SQLException, IOException {
@@ -118,7 +117,6 @@ public class BT2 {
 				} catch (SQLException e) {
 					System.out.println(e.getMessage());
 				}
-				
 			}
 			
 			stmt.close();
@@ -138,8 +136,8 @@ public class BT2 {
 				
 				if (error == "") {
             		int diemthuong = 0;
-            		if (parts[2] == "VIP") diemthuong = Integer.parseInt(parts[1]) *50000;
-            		else if (parts[2] == "NOR") diemthuong = Integer.parseInt(parts[1])*20000;
+            		if (parts[2] == "VIP") diemthuong = Integer.parseInt(parts[1]) * 50000;
+            		else if (parts[2] == "NOR") diemthuong = Integer.parseInt(parts[1]) * 20000;
             		int newCPN = Integer.parseInt(parts[1]) + diemthuong;
                 	                    	
                     stmt.setInt(1, newCPN);
@@ -153,7 +151,6 @@ public class BT2 {
         			res += error;
         		}
 				
-				
 				index++;
 			}
 			
@@ -163,33 +160,32 @@ public class BT2 {
 		stmt.close();
 		con.close();
 		
-		System.out.println("Insert successfully! url = " + url);
+		System.out.println("\nInsert successfully! url = " + url);
 	}
 	
 	
-	private static String checkLineError(String[] line, int index) throws ClassNotFoundException, SQLException {
+	private static String checkLineError(String[] parts, int index) throws ClassNotFoundException, SQLException {
 		String res = "";
-		String query = "select * from THANHVIEN Where MaThanhVien = '" + line[0] +"'";
-		Statement stmt;
-		ResultSet set;
+		String query = "select * from THANHVIEN Where MaThanhVien = ?";
 		
 		Connection con = getConnection();
-		stmt = con.createStatement();
-		set = stmt.executeQuery(query);
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setString(1, parts[0]);
+		ResultSet set = stmt.executeQuery();
 		if (!set.next()) res += "Dong " + index + ": Khong tim thay ma thanh vien tuong ung\n";
 		stmt.close();
-    	con.close();
+		con.close();
     	
 		int i;
 		try {
-			i = Integer.parseInt(line[1]);
+			i = Integer.parseInt(parts[1]);
 			if (i < 0) res += "Dong " + index + ": Diem thuong khong la so nguyen duong\n";
 			if (i > 500 ) res += "Dong " + index + ": Diem thuong lon hon 500\n";
 		} catch (Exception e) {
 			res += "Dong " + index + ": Diem thuong khong la so nguyen duong\n";
 		}
 		
-		if (!line[2].equals("VIP") && !line[2].equals("NOR")) res += "Dong " + index + ": Level khong phai VIP hoac NOR\n";		
+		if (!parts[2].equals("VIP") && !parts[2].equals("NOR")) res += "Dong " + index + ": Level khong phai VIP hoac NOR\n";		
 		
 		return res;
 	}
